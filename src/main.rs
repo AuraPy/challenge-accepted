@@ -56,6 +56,23 @@ async fn main() {
             ..ui::root_ui().default_skin()
         }
     };
+    let mobile = {
+        let button_style =  ui::root_ui().style_builder()
+            .background(
+                Image::from_file_with_format(
+                    include_bytes!("mobile.png"),
+                    None,
+                )
+                .unwrap(),
+            )
+            .background_margin(RectOffset::new(100.0, 0.0, 100.0, 0.0))
+            .build();
+
+        ui::Skin {
+            button_style,
+            ..ui::root_ui().default_skin()
+        }
+    };
     let mut ball_x = 330.0;
     let mut ball_y = 80.0;
     let mut dy = 1.0;
@@ -66,6 +83,10 @@ async fn main() {
     let mut milestones = Vec::new();
     let mut score = 0;
     let point = load_sound("src/point.wav").await.unwrap();
+    let mut mobilemode = false;
+    let mut rectright: Rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+    let mut rectleft: Rect = Rect::new(0.0, 0.0, 0.0, 0.0);
+    let mut rectjump: Rect = Rect::new(0.0, 0.0, 0.0, 0.0);
 
     milestones.push(0);
 
@@ -75,18 +96,30 @@ async fn main() {
 
     loop {
         clear_background(BLACK);
-        ui::root_ui().push_skin(&left);
-        let buttonleft = ui::root_ui().button(vec2(0.0, screen_height()-100.0), "");
-        let rectleft = Rect::new(0.0, screen_height()-100.0, 100.0, 100.0);
-        ui::root_ui().pop_skin();
-        ui::root_ui().push_skin(&right);
-        let buttonright = ui::root_ui().button(vec2(120.0, screen_height()-100.0), "");
-        let rectright = Rect::new(120.0, screen_height()-100.0, 100.0, 100.0);
-        ui::root_ui().pop_skin();
-        ui::root_ui().push_skin(&jump);
-        let buttonjump = ui::root_ui().button(vec2(screen_width()-100.0, screen_height()-100.0), "");
-        let rectjump = Rect::new(screen_width()-100.0, screen_height()-100.0, 100.0, 100.0);
-        
+        ui::root_ui().push_skin(&mobile);
+        let buttonmobile = ui::root_ui().button(vec2(screen_width()-50.0, 0.0), "");
+        if buttonmobile {
+            if mobilemode {
+                mobilemode = false
+            } else {
+                mobilemode = true
+            }
+        }
+        if mobilemode {
+            ui::root_ui().pop_skin();
+            ui::root_ui().push_skin(&left);
+            let _buttonleft = ui::root_ui().button(vec2(0.0, screen_height()-100.0), "");
+            rectleft = Rect::new(0.0, screen_height()-100.0, 100.0, 100.0);
+            ui::root_ui().pop_skin();
+            ui::root_ui().push_skin(&right);
+            let _buttonright = ui::root_ui().button(vec2(120.0, screen_height()-100.0), "");
+            rectright = Rect::new(120.0, screen_height()-100.0, 100.0, 100.0);
+            ui::root_ui().pop_skin();
+            ui::root_ui().push_skin(&jump);
+            let _buttonjump = ui::root_ui().button(vec2(screen_width()-100.0, screen_height()-100.0), "");
+            rectjump = Rect::new(screen_width()-100.0, screen_height()-100.0, 100.0, 100.0);
+        }
+
         for pos in &orbs {
             draw_circle(pos.0, pos.1, 10.0,  WHITE);
         }
@@ -136,15 +169,15 @@ async fn main() {
             }
         }
 
-        if is_key_down(KeyCode::Space) || (is_mouse_button_down(MouseButton::Left) && rectjump.contains(mouse_position().into())) {
-            if ball_y + 20.0 >= screen_height() {
-                dy += -4.0
+        if mobilemode {
+            if is_mouse_button_down(MouseButton::Left) && rectjump.contains(mouse_position().into()) {
+                if ball_y + 20.0 >= screen_height() {
+                    dy += -4.0
+                }
             }
-        }
-        if is_key_down(KeyCode::A) || (is_mouse_button_down(MouseButton::Left) && rectleft.contains(mouse_position().into())) {
-            dx += -0.2;
-        } else{
-            if is_key_down(KeyCode::D) || (is_mouse_button_down(MouseButton::Left) && rectright.contains(mouse_position().into())) {
+            if is_mouse_button_down(MouseButton::Left) && rectleft.contains(mouse_position().into()) {
+                dx += -0.2;
+            } else if is_mouse_button_down(MouseButton::Left) && rectright.contains(mouse_position().into()) {
                 dx += 0.2;
             } else {
                 if dx < -0.1 {
@@ -157,14 +190,37 @@ async fn main() {
                     }
                 }
             }
-        }
-        if ball_x + 20.0 > screen_width() {
-            ball_x = screen_width() - 20.0;
-            dx = 0.0;
-        }
-        if ball_x - 20.0 < 0.0 {
-            ball_x = 20.0;
-            dx = 0.0;
+        } else {
+            if is_key_down(KeyCode::Space) {
+                if ball_y + 20.0 >= screen_height() {
+                    dy += -4.0
+                }
+            }
+            if is_key_down(KeyCode::A) {
+                dx += -0.2;
+            } else{
+                if is_key_down(KeyCode::D) {
+                    dx += 0.2;
+                } else {
+                    if dx < -0.1 {
+                        dx += 0.2;
+                    } else {
+                        if dx > 0.1 {
+                            dx += -0.2;
+                        } else {
+                            dx = 0.0;
+                        }
+                    }
+                }
+            }
+            if ball_x + 20.0 > screen_width() {
+                ball_x = screen_width() - 20.0;
+                dx = 0.0;
+            }
+            if ball_x - 20.0 < 0.0 {
+                ball_x = 20.0;
+                dx = 0.0;
+            }
         }
 
         next_frame().await
