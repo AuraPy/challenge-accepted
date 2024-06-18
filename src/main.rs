@@ -1,9 +1,61 @@
 use macroquad::prelude::*;
+use macroquad::ui;
 use macroquad::rand::RandomRange;
 use macroquad::audio::{load_sound, play_sound_once};
 
 #[macroquad::main("Challenge Accepted")]
 async fn main() {
+    let left = {
+        let button_style =  ui::root_ui().style_builder()
+            .background(
+                Image::from_file_with_format(
+                    include_bytes!("left.png"),
+                    None,
+                )
+                .unwrap(),
+            )
+            .background_margin(RectOffset::new(100.0, 0.0, 100.0, 0.0))
+            .build();
+
+        ui::Skin {
+            button_style,
+            ..ui::root_ui().default_skin()
+        }
+    };
+    let right = {
+        let button_style =  ui::root_ui().style_builder()
+            .background(
+                Image::from_file_with_format(
+                    include_bytes!("right.png"),
+                    None,
+                )
+                .unwrap(),
+            )
+            .background_margin(RectOffset::new(100.0, 0.0, 100.0, 0.0))
+            .build();
+
+        ui::Skin {
+            button_style,
+            ..ui::root_ui().default_skin()
+        }
+    };
+    let jump = {
+        let button_style =  ui::root_ui().style_builder()
+            .background(
+                Image::from_file_with_format(
+                    include_bytes!("jump.png"),
+                    None,
+                )
+                .unwrap(),
+            )
+            .background_margin(RectOffset::new(100.0, 0.0, 100.0, 0.0))
+            .build();
+
+        ui::Skin {
+            button_style,
+            ..ui::root_ui().default_skin()
+        }
+    };
     let mut ball_x = 330.0;
     let mut ball_y = 80.0;
     let mut dy = 1.0;
@@ -23,6 +75,18 @@ async fn main() {
 
     loop {
         clear_background(BLACK);
+        ui::root_ui().push_skin(&left);
+        let buttonleft = ui::root_ui().button(vec2(0.0, screen_height()-100.0), "");
+        let rectleft = Rect::new(0.0, screen_height()-100.0, 100.0, 100.0);
+        ui::root_ui().pop_skin();
+        ui::root_ui().push_skin(&right);
+        let buttonright = ui::root_ui().button(vec2(120.0, screen_height()-100.0), "");
+        let rectright = Rect::new(120.0, screen_height()-100.0, 100.0, 100.0);
+        ui::root_ui().pop_skin();
+        ui::root_ui().push_skin(&jump);
+        let buttonjump = ui::root_ui().button(vec2(screen_width()-100.0, screen_height()-100.0), "");
+        let rectjump = Rect::new(screen_width()-100.0, screen_height()-100.0, 100.0, 100.0);
+        
         for pos in &orbs {
             draw_circle(pos.0, pos.1, 10.0,  WHITE);
         }
@@ -72,15 +136,15 @@ async fn main() {
             }
         }
 
-        if is_key_down(KeyCode::Space) {
+        if is_key_down(KeyCode::Space) || (is_mouse_button_down(MouseButton::Left) && rectjump.contains(mouse_position().into())) {
             if ball_y + 20.0 >= screen_height() {
                 dy += -4.0
             }
         }
-        if is_key_down(KeyCode::A) {
+        if is_key_down(KeyCode::A) || (is_mouse_button_down(MouseButton::Left) && rectleft.contains(mouse_position().into())) {
             dx += -0.2;
         } else{
-            if is_key_down(KeyCode::D) {
+            if is_key_down(KeyCode::D) || (is_mouse_button_down(MouseButton::Left) && rectright.contains(mouse_position().into())) {
                 dx += 0.2;
             } else {
                 if dx < -0.1 {
