@@ -213,14 +213,21 @@ async fn main() {
                     }
                 }
             }
-            if ball_x + 20.0 > screen_width() {
-                ball_x = screen_width() - 20.0;
-                dx = 0.0;
-            }
-            if ball_x - 20.0 < 0.0 {
-                ball_x = 20.0;
-                dx = 0.0;
-            }
+        }
+        if ball_x + 20.0 > screen_width() {
+            ball_x = screen_width() - 20.0;
+            dx = 0.0;
+        }
+        if ball_x - 20.0 < 0.0 {
+            ball_x = 20.0;
+            dx = 0.0;
+        }
+        if ball_y - 20.0 < 0.0 {
+            ball_y = 20.0;
+            dy = 0.0;
+        }
+        if ball_y + 20.0 > screen_height() {
+            ball_y = screen_height() - 20.0
         }
 
         next_frame().await
