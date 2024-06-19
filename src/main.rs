@@ -82,8 +82,12 @@ async fn main() {
     let mut yelloworbs: Vec<(f32, f32)> = Vec::new();
     let mut blueorbs: Vec<(f32, f32, f32, bool)> = Vec::new();
     let mut milestones = Vec::new();
-    let mut score = 90;
+    let mut score = 0;
     let point = load_sound("src/point.wav").await.unwrap();
+    let point2 = load_sound("src/point2.wav").await.unwrap();
+    let point3 = load_sound("src/point3.wav").await.unwrap();
+    let mobilemodesound = load_sound("src/mobilemode.wav").await.unwrap();
+    let levelup = load_sound("src/levelup.wav").await.unwrap();
     let mut mobilemode = false;
     let mut rectright: Rect = Rect::new(0.0, 0.0, 0.0, 0.0);
     let mut rectleft: Rect = Rect::new(0.0, 0.0, 0.0, 0.0);
@@ -100,6 +104,7 @@ async fn main() {
         ui::root_ui().push_skin(&mobile);
         let buttonmobile = ui::root_ui().button(vec2(screen_width()-50.0, 0.0), "");
         if buttonmobile {
+            play_sound_once(&mobilemodesound);
             if mobilemode {
                 mobilemode = false
             } else {
@@ -145,7 +150,7 @@ async fn main() {
             if ((pos.0 - ball_x).abs() < 30.0) && ((pos.1 - ball_y).abs() < 30.0) {
                 yelloworbs[i] = (RandomRange::gen_range(0.0, screen_width()), RandomRange::gen_range(0.0, screen_height()));
                 score += 2;
-                play_sound_once(&point);
+                play_sound_once(&point2);
             }
         }
         for i in 0..blueorbs.len() {
@@ -154,7 +159,7 @@ async fn main() {
                 let startx = RandomRange::gen_range(0.0, screen_width());
                 blueorbs[i] = (startx, RandomRange::gen_range(0.0, screen_height()), startx, false);
                 score += 5;
-                play_sound_once(&point);
+                play_sound_once(&point3);
             }
         }
 
@@ -163,14 +168,22 @@ async fn main() {
         dy += 0.15;
 
         if score % 10 == 0 && !milestones.contains(&score) {
-            if score >= 50 {
+            if score > 0 && score < 150 {
+                orbs.push((RandomRange::gen_range(0.0, screen_width()), RandomRange::gen_range(0.0, screen_height())));
+            }
+            if score >= 50 && score < 250 {
+                if score == 50{
+                    play_sound_once(&levelup);
+                }
                 yelloworbs.push((RandomRange::gen_range(0.0, screen_width()), RandomRange::gen_range(0.0, screen_height())));
             }
             if score >= 100 {
+                if score == 100{
+                    play_sound_once(&levelup);
+                }
                 let startx = RandomRange::gen_range(0.0, screen_width());
                 blueorbs.push((startx, RandomRange::gen_range(0.0, screen_height()), startx, false));
             }
-            orbs.push((RandomRange::gen_range(0.0, screen_width()), RandomRange::gen_range(0.0, screen_height())));
             milestones.push(score);
         }
 
