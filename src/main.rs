@@ -80,8 +80,9 @@ async fn main() {
     let kineticmult = 0.75;
     let mut orbs: Vec<(f32, f32)> = Vec::new();
     let mut yelloworbs: Vec<(f32, f32)> = Vec::new();
+    let mut blueorbs: Vec<(f32, f32, f32, bool)> = Vec::new();
     let mut milestones = Vec::new();
-    let mut score = 0;
+    let mut score = 90;
     let point = load_sound("src/point.wav").await.unwrap();
     let mut mobilemode = false;
     let mut rectright: Rect = Rect::new(0.0, 0.0, 0.0, 0.0);
@@ -126,6 +127,9 @@ async fn main() {
         for pos in &yelloworbs {
             draw_circle(pos.0, pos.1, 10.0,  YELLOW);
         }
+        for pos in &blueorbs {
+            draw_circle(pos.0, pos.1, 10.0,  BLUE);
+        }
 
         draw_circle(ball_x, ball_y, 20.0, Color::from_rgba(255, 100, 140, 255));
         for i in 0..orbs.len() {
@@ -144,6 +148,15 @@ async fn main() {
                 play_sound_once(&point);
             }
         }
+        for i in 0..blueorbs.len() {
+            let pos = blueorbs[i];
+            if ((pos.0 - ball_x).abs() < 30.0) && ((pos.1 - ball_y).abs() < 30.0) {
+                let startx = RandomRange::gen_range(0.0, screen_width());
+                blueorbs[i] = (startx, RandomRange::gen_range(0.0, screen_height()), startx, false);
+                score += 5;
+                play_sound_once(&point);
+            }
+        }
 
         ball_y += dy;
         ball_x += dx;
@@ -153,8 +166,26 @@ async fn main() {
             if score >= 50 {
                 yelloworbs.push((RandomRange::gen_range(0.0, screen_width()), RandomRange::gen_range(0.0, screen_height())));
             }
+            if score >= 100 {
+                let startx = RandomRange::gen_range(0.0, screen_width());
+                blueorbs.push((startx, RandomRange::gen_range(0.0, screen_height()), startx, false));
+            }
             orbs.push((RandomRange::gen_range(0.0, screen_width()), RandomRange::gen_range(0.0, screen_height())));
             milestones.push(score);
+        }
+
+        for i in 0..blueorbs.len() {
+            let pos = blueorbs[i];
+            if !pos.3 {
+                blueorbs[i] = (pos.0+2.0, pos.1, pos.2, pos.3);
+            } else if pos.3 {
+                blueorbs[i] = (pos.0-2.0, pos.1, pos.2, pos.3);
+            }
+            if blueorbs[i].0 > pos.2 + 300.0 {
+                blueorbs[i] = (pos.0, pos.1, pos.2, true);
+            } else if blueorbs[i].0 < pos.2 {
+                blueorbs[i] = (pos.0, pos.1, pos.2, false);
+            }
         }
 
         let text_size = measure_text(&score.to_string(), None, 80, 1.0);
