@@ -81,7 +81,7 @@ async fn main() {
     let mut orbs: Vec<(f32, f32)> = Vec::new();
     let mut yelloworbs: Vec<(f32, f32)> = Vec::new();
     let mut blueorbs: Vec<(f32, f32, f32, bool)> = Vec::new();
-    let mut bomborbs: Vec<(f32, f32, f32, bool)> = Vec::new();
+    let mut bomborbs: Vec<(f32, f32, f32, i32, f32, f32, i32)> = Vec::new();
     let mut milestones = Vec::new();
     let mut score = 150;
     let point = load_sound("src/point.wav").await.unwrap();
@@ -170,7 +170,8 @@ async fn main() {
             let pos = bomborbs[i];
             if ((pos.0 - ball_x).abs() < 30.0) && ((pos.1 - ball_y).abs() < 30.0) {
                 let startx = RandomRange::gen_range(0.0, screen_width());
-                bomborbs[i] = (startx, RandomRange::gen_range(0.0, screen_height()), startx, false);
+                let starty = RandomRange::gen_range(0.0, screen_height());
+                bomborbs[i] = (startx, starty, startx, 0, starty, 1.0, 0);
                 score += 8;
                 play_sound_once(&point3);
             }
@@ -202,7 +203,8 @@ async fn main() {
                     play_sound_once(&levelup);
                 }
                 let startx = RandomRange::gen_range(0.0, screen_width());
-                bomborbs.push((startx, RandomRange::gen_range(0.0, screen_height()), startx, false));
+                let starty = RandomRange::gen_range(0.0, screen_height());
+                bomborbs.push((startx, starty, startx, 0, starty, 1.0, 0));
             }
             milestones.push(score);
         }
@@ -223,15 +225,28 @@ async fn main() {
 
         for i in 0..bomborbs.len() {
             let pos = bomborbs[i];
-            if !pos.3 {
-                bomborbs[i] = (pos.0+2.0, pos.1, pos.2, pos.3);
-            } else if pos.3 {
-                bomborbs[i] = (pos.0-2.0, pos.1, pos.2, pos.3);
+            if pos.3 == 0 {
+                bomborbs[i] = (pos.0+2.0, pos.1, pos.2, pos.3, pos.4, pos.5, 0);
+            } else if pos.3 == 1 {
+                bomborbs[i] = (pos.0-2.0, pos.1, pos.2, pos.3, pos.4, pos.5, 0);
+            } else if pos.3 == 2 {
+                let pos = bomborbs[i];
+                draw_circle(pos.0, pos.4, 8.0, GRAY);
+                println!("{:?}", bomborbs[i]);
+                bomborbs[i] = (pos.0, pos.1, pos.2, 2, pos.4+pos.5, pos.5 + 0.1, pos.6);
+                let pos = bomborbs[i];
+                if pos.4 > screen_height() {
+                    if pos.6 == 0 {
+                        bomborbs[i] = (pos.0, pos.1, pos.2, 0, pos.4, pos.5, pos.6);
+                    } else if pos.6 == 1 {
+                        bomborbs[i] = (pos.0, pos.1, pos.2, 1, pos.4, pos.5, pos.6);
+                    }
+                }
             }
             if bomborbs[i].0 > pos.2 + 300.0 {
-                bomborbs[i] = (pos.0, pos.1, pos.2, true);
+                bomborbs[i] = (pos.0, pos.1, pos.2, 2, pos.1, 1.0, 1);
             } else if bomborbs[i].0 < pos.2 {
-                bomborbs[i] = (pos.0, pos.1, pos.2, false);
+                bomborbs[i] = (pos.0, pos.1, pos.2, 2, pos.1, 1.0, 0);
             }
         }
 
