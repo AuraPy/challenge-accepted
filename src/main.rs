@@ -89,6 +89,7 @@ async fn main() {
     let point3 = load_sound("src/point3.wav").await.unwrap();
     let mobilemodesound = load_sound("src/mobilemode.wav").await.unwrap();
     let levelup = load_sound("src/levelup.wav").await.unwrap();
+    let explosion = load_sound("src/explosion.wav").await.unwrap();
     let mut mobilemode = false;
     let mut rectright: Rect = Rect::new(0.0, 0.0, 0.0, 0.0);
     let mut rectleft: Rect = Rect::new(0.0, 0.0, 0.0, 0.0);
@@ -175,6 +176,10 @@ async fn main() {
                 score += 8;
                 play_sound_once(&point3);
             }
+            if ((pos.0 - ball_x).abs() < 30.0) && ((pos.4 - ball_y).abs() < 30.0) {
+                score = 0;
+                play_sound_once(&explosion);
+            }
         }
 
         ball_y += dy;
@@ -225,6 +230,7 @@ async fn main() {
 
         for i in 0..bomborbs.len() {
             let pos = bomborbs[i];
+            println!("{}, {}", pos.0, pos.4);
             if pos.3 == 0 {
                 bomborbs[i] = (pos.0+2.0, pos.1, pos.2, pos.3, pos.4, pos.5, 0);
             } else if pos.3 == 1 {
@@ -232,14 +238,13 @@ async fn main() {
             } else if pos.3 == 2 {
                 let pos = bomborbs[i];
                 draw_circle(pos.0, pos.4, 8.0, GRAY);
-                println!("{:?}", bomborbs[i]);
                 bomborbs[i] = (pos.0, pos.1, pos.2, 2, pos.4+pos.5, pos.5 + 0.1, pos.6);
                 let pos = bomborbs[i];
                 if pos.4 > screen_height() {
                     if pos.6 == 0 {
-                        bomborbs[i] = (pos.0, pos.1, pos.2, 0, pos.4, pos.5, pos.6);
+                        bomborbs[i] = (pos.0, pos.1, pos.2, 0, screen_height()+10.0, pos.5, pos.6);
                     } else if pos.6 == 1 {
-                        bomborbs[i] = (pos.0, pos.1, pos.2, 1, pos.4, pos.5, pos.6);
+                        bomborbs[i] = (pos.0, pos.1, pos.2, 1, screen_height()+10.0, pos.5, pos.6);
                     }
                 }
             }
