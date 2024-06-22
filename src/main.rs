@@ -73,6 +73,23 @@ async fn main() {
             ..ui::root_ui().default_skin()
         }
     };
+    let retry = {
+        let button_style =  ui::root_ui().style_builder()
+            .background(
+                Image::from_file_with_format(
+                    include_bytes!("retry.png"),
+                    None,
+                )
+                .unwrap(),
+            )
+            .background_margin(RectOffset::new(200.0, 0.0, 100.0, 0.0))
+            .build();
+
+        ui::Skin {
+            button_style,
+            ..ui::root_ui().default_skin()
+        }
+    };
     let mut alive = true;
     let mut ball_x = 330.0;
     let mut ball_y = 80.0;
@@ -84,7 +101,7 @@ async fn main() {
     let mut blueorbs: Vec<(f32, f32, f32, bool)> = Vec::new();
     let mut bomborbs: Vec<(f32, f32, f32, i32, f32, f32, i32)> = Vec::new();
     let mut milestones = Vec::new();
-    let mut score = 150;
+    let mut score = 0;
     let point = load_sound("src/point.wav").await.unwrap();
     let point2 = load_sound("src/point2.wav").await.unwrap();
     let point3 = load_sound("src/point3.wav").await.unwrap();
@@ -233,14 +250,13 @@ async fn main() {
 
             for i in 0..bomborbs.len() {
                 let pos = bomborbs[i];
-                println!("{}, {}", pos.0, pos.4);
                 if pos.3 == 0 {
                     bomborbs[i] = (pos.0+2.0, pos.1, pos.2, pos.3, pos.4, pos.5, 0);
                 } else if pos.3 == 1 {
                     bomborbs[i] = (pos.0-2.0, pos.1, pos.2, pos.3, pos.4, pos.5, 0);
                 } else if pos.3 == 2 {
                     let pos = bomborbs[i];
-                    draw_circle(pos.0, pos.4, 8.0, GRAY);
+                    draw_circle(pos.0, pos.4, 8.0, RED);
                     bomborbs[i] = (pos.0, pos.1, pos.2, 2, pos.4+pos.5, pos.5 + 0.1, pos.6);
                     let pos = bomborbs[i];
                     if pos.4 > screen_height() {
@@ -334,7 +350,25 @@ async fn main() {
             next_frame().await
         } else {
             let text_size = measure_text("GAME OVER", None, 100, 1.0);
-            draw_text("GAME OVER", screen_width()/2.0-text_size.width/2.0, screen_height()/2.0, 100.0, WHITE);
+            draw_text("GAME OVER", screen_width()/2.0-text_size.width/2.0, screen_height()/2.0-120.0, 100.0, WHITE);
+            ui::root_ui().pop_skin();
+            ui::root_ui().push_skin(&retry);
+            let buttonretry = ui::root_ui().button(vec2(screen_width()/2.0-100.0, screen_height()/2.0-50.0), "");
+            if buttonretry {
+                orbs = Vec::new();
+                yelloworbs = Vec::new();
+                blueorbs = Vec::new();
+                bomborbs = Vec::new();
+                milestones = Vec::new();
+                ball_x = 330.0;
+                ball_y = 80.0;
+                dy = 1.0;
+                dx = 0.0;
+                for _ in 0..5 {
+                    orbs.push((RandomRange::gen_range(0.0, screen_width()), RandomRange::gen_range(0.0, screen_height())));
+                }
+                alive = true;
+            }
 
             next_frame().await
         }
