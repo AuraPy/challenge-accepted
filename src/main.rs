@@ -81,8 +81,9 @@ async fn main() {
     let mut orbs: Vec<(f32, f32)> = Vec::new();
     let mut yelloworbs: Vec<(f32, f32)> = Vec::new();
     let mut blueorbs: Vec<(f32, f32, f32, bool)> = Vec::new();
+    let mut bomborbs: Vec<(f32, f32, f32, bool)> = Vec::new();
     let mut milestones = Vec::new();
-    let mut score = 0;
+    let mut score = 150;
     let point = load_sound("src/point.wav").await.unwrap();
     let point2 = load_sound("src/point2.wav").await.unwrap();
     let point3 = load_sound("src/point3.wav").await.unwrap();
@@ -135,6 +136,9 @@ async fn main() {
         for pos in &blueorbs {
             draw_circle(pos.0, pos.1, 10.0,  BLUE);
         }
+        for pos in &bomborbs {
+            draw_circle(pos.0, pos.1, 10.0,  GRAY);
+        }
 
         draw_circle(ball_x, ball_y, 20.0, Color::from_rgba(255, 100, 140, 255));
         for i in 0..orbs.len() {
@@ -162,6 +166,15 @@ async fn main() {
                 play_sound_once(&point3);
             }
         }
+        for i in 0..bomborbs.len() {
+            let pos = bomborbs[i];
+            if ((pos.0 - ball_x).abs() < 30.0) && ((pos.1 - ball_y).abs() < 30.0) {
+                let startx = RandomRange::gen_range(0.0, screen_width());
+                bomborbs[i] = (startx, RandomRange::gen_range(0.0, screen_height()), startx, false);
+                score += 8;
+                play_sound_once(&point3);
+            }
+        }
 
         ball_y += dy;
         ball_x += dx;
@@ -177,12 +190,19 @@ async fn main() {
                 }
                 yelloworbs.push((RandomRange::gen_range(0.0, screen_width()), RandomRange::gen_range(0.0, screen_height())));
             }
-            if score >= 100 {
+            if score >= 100 && score < 350 {
                 if score == 100{
                     play_sound_once(&levelup);
                 }
                 let startx = RandomRange::gen_range(0.0, screen_width());
                 blueorbs.push((startx, RandomRange::gen_range(0.0, screen_height()), startx, false));
+            }
+            if score >= 150 {
+                if score == 150{
+                    play_sound_once(&levelup);
+                }
+                let startx = RandomRange::gen_range(0.0, screen_width());
+                bomborbs.push((startx, RandomRange::gen_range(0.0, screen_height()), startx, false));
             }
             milestones.push(score);
         }
@@ -198,6 +218,20 @@ async fn main() {
                 blueorbs[i] = (pos.0, pos.1, pos.2, true);
             } else if blueorbs[i].0 < pos.2 {
                 blueorbs[i] = (pos.0, pos.1, pos.2, false);
+            }
+        }
+
+        for i in 0..bomborbs.len() {
+            let pos = bomborbs[i];
+            if !pos.3 {
+                bomborbs[i] = (pos.0+2.0, pos.1, pos.2, pos.3);
+            } else if pos.3 {
+                bomborbs[i] = (pos.0-2.0, pos.1, pos.2, pos.3);
+            }
+            if bomborbs[i].0 > pos.2 + 300.0 {
+                bomborbs[i] = (pos.0, pos.1, pos.2, true);
+            } else if bomborbs[i].0 < pos.2 {
+                bomborbs[i] = (pos.0, pos.1, pos.2, false);
             }
         }
 
