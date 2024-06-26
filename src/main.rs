@@ -308,15 +308,15 @@ async fn main() {
                     }
                 }
             } else {
-                if is_key_down(KeyCode::Space) {
+                if is_key_down(KeyCode::Space) || is_key_down(KeyCode::Up) || is_key_down(KeyCode::W) {
                     if ball_y + 20.0 >= screen_height() {
                         dy += -4.0
                     }
                 }
-                if is_key_down(KeyCode::A) {
+                if is_key_down(KeyCode::A) || is_key_down(KeyCode::Left) {
                     dx += -0.2;
                 } else{
-                    if is_key_down(KeyCode::D) {
+                    if is_key_down(KeyCode::D) || is_key_down(KeyCode::Right) {
                         dx += 0.2;
                     } else {
                         if dx < -0.1 {
